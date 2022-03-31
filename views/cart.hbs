@@ -1,0 +1,146 @@
+<script>
+    // do we want the van to be removed when submitting order ?
+    function saveItems(){
+        // redirect to home page if customer has not chosen a van
+        if (sessionStorage.getItem("current_van") === null){
+            document.getElementById("orderMessage").innerHTML = 'Please choose a van.'
+            document.querySelector('.order-modal').style.display='flex';
+        }    
+        else{ // if customer has chosen a van, pass the key & value pair frm session storage to the controller
+        console.log(sessionStorage.getItem("current_van"))
+        document.getElementById("current_van").value = JSON.parse(JSON.stringify(sessionStorage.getItem("current_van")));
+        console.log(document.getElementById("current_van").value)
+        document.getElementById("van_form").submit();
+        // sessionStorage.removeItem("current_van")
+        // sessionStorage.clear();
+
+        //start timer to local storage when customer submit order
+        console.log("local storage")
+        window.localStorage.setItem("seconds", 0);
+        window.localStorage.setItem("minutes", 15);
+        }
+        
+    }      
+
+</script>
+
+{{! view customer order}}
+<section id = "currentCart">
+    <center>
+    <h1>Cart List</h1>
+    {{#if loggedin}}<a href="/customer/order-history">View Order History</a></center>
+    <div class= "cart-page">
+        {{#if total}}
+        <table>
+            <tr><th>Selected Van: <span id="van_name"></span> </th><th><th></th></th></tr>
+            <tr> 
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                
+            </tr>
+            {{#each cart}}
+            {{#if this.quantity}}
+            <tr>
+                <td>
+                    <div class="cart-info">
+                        <img class="currentCart" src="https://source.unsplash.com/{{this.snackId.photo}}" alt="hosted by Unsplash">
+                        <div>
+                            <p>{{this.snackId.name}}</p>
+                            <small>Price: ${{two_dp this.snackId.price}}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="quantity">{{this.quantity}}</td>
+                <td class="total">{{two_dp (multiply this.snackId.price this.quantity)}}</td>
+                  
+            </tr>
+            {{/if}}
+            {{/each}}
+        </table>
+        {{else}}
+        <p>Your cart is empty</p>
+        {{/if}}
+    </div>
+    {{#if total}}
+    <div class="total-price">
+        <table>
+            <tr>
+                <td><b>Total Price</b></td>
+                <td>${{two_dp total}}</td>
+            </tr>
+            <tr>
+                <td>
+                    <button onclick="location.href = '/customer/snacks'">CHANGE ORDER</button>
+                </td>
+                <td>
+                    <div>
+                    <form method="post" action="/customer/order-details" id="van_form" class="confirm-order">
+                    <input type="hidden" name="current_van" id = "current_van"/>
+                    <input id ="submit_button" type="submit" onclick = "saveItems()" value="CONFIRM ORDER"/>
+                    </form>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    
+    {{/if}}
+    {{else}}
+    <p><a href="/customer/getLoginPage">Login to view order history</a></p>
+    {{/if}}
+
+
+<!-- pop up message when clicking add to cart -->
+<div class="order-modal">
+    <div class="modal-content">
+        <div class="close2">&times;</div>
+        <div><img src="https://i.imgur.com/tZ47M5M.png" width="150px" height="140px"></div>
+        <div>
+            <p id="orderMessage"></p>
+        </div>
+    </div>
+</div>
+
+    <form method="post" action="/customer/cart" id="cartform">
+        <input type="hidden" name="items" id="items"/>
+        <input type="hidden" name="qty" id="qty"/>
+    </form>
+
+    <form id="get_nearest_form" method="post" action="/customer/nearest-van">
+    <input type="hidden" id="location" name="location"/>
+    </form>
+</section>
+
+<script>
+// get van name from sessionstorage: let user know if has chosen van in the table
+if (window.sessionStorage.getItem('current_van') != null){
+    document.getElementById('van_name').innerHTML = JSON.stringify(JSON.parse(window.sessionStorage.getItem('current_van')).name)
+}
+else{
+    document.getElementById('van_name').innerHTML = 
+    `<input type="button" onclick="getNearestVan()" value="Find Nearest Van">`
+    // call back function: asynchronous
+    function getNearestVan(){
+    navigator.geolocation.getCurrentPosition(function (position){
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+        console.log(lat, lon);
+        json_location = JSON.stringify({ 'latitude': lat, 'longitude': lon })
+        console.log(json_location)
+        // set Element Location 
+        document.getElementById('location').value = json_location;
+        // submit After Successfully Getting Position from geoLocation API
+        document.getElementById("get_nearest_form").submit()
+    })
+    alert('Please wait')
+    }
+}
+
+    document.querySelector('.close2').addEventListener('click', function() {
+        document.querySelector('.order-modal').style.display='none';
+    });
+
+
+</script>

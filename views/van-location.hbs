@@ -1,0 +1,102 @@
+<section id="setlocation">
+  <div class="p-2 mb-4 bg-light">
+    <div class="container text-center">
+      <h1 class="display-5 fw-bold">Update Location</h1>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <div id="mapping"></div>
+      </div>
+      <div class="col-lg-6">
+        {{#if vanloggedin}}
+          <div class="row">
+            <form method="post" action="/vendor/update-van-details/open" class="col-lg-12 col-sm-6 my-3" id="open_van">
+              <h5>Location longitude</h5>
+              <input type="hidden" id="location" name="location">
+              <table class="my-2 mb-5">
+                <tr>
+                  <td>
+                    Latitude
+                  </td>
+                  <td>:</td>
+                  <td>
+                    <span id="latitude" name="latitude">Loading...</span>&deg;
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    Longitude
+                  </td>
+                  <td>:</td>
+                  <td>
+                    <span id="longitude" name="longitude">Loading...</span>&deg;
+                  </td>
+                </tr>
+              </table>
+              <h5>Location description</h5>
+              <input type="text" id="location" name="location_description" placeholder="Example: 31 Collins St" class="mb-3">
+            </form>
+            <div class="col-lg-12 col-sm-6 mt-3">
+              <h5>Open for business?</h5>
+              <button type="button" class="btn btn-primary btn-lg" onclick="openVan()">Open Van</button>
+              <button type="button" class="btn btn-secondary btn-lg" onclick="closeVan()">Close</button>
+              <form method="post" action="/vendor/update-van-details/close" style="display: none;" id="close_van" />
+            </div>
+          </div>
+        </div>
+        {{else}}
+        <p>Please <a href="/vendor/">Log In</a> to Set Location</p>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  <script>
+    if ('geolocation' in navigator) {
+      console.log('geolocation available');
+      navigator.geolocation.getCurrentPosition(position => {
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+
+        a = JSON.stringify({ 'latitude': lat, 'longitude': lon })
+        console.log(a)
+        document.getElementById('latitude').textContent = lat;
+        document.getElementById('longitude').textContent = lon;
+        document.getElementById('location').value = a;
+
+        const mymap = L.map('mapping').setView([lat, lon], 15);
+        const attribution =
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, { attribution });
+        tiles.addTo(mymap);
+        const marker = L.marker([lat, lon]).addTo(mymap);
+      });
+    } else {
+      console.log('geolocation not available');
+    }
+
+
+    // Form Submit Script
+    function openVan() {
+      document.getElementById("open_van").submit()
+    }
+    function closeVan() {
+      document.getElementById("close_van").submit()
+    }
+  </script>
+
+</section>
+
+<style>
+  #mapping {
+    height: 70vh;
+  }
+
+  @media (max-width: 990px) {
+    #mapping {
+      height: 40vh;
+    }
+  }
+</style>

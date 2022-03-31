@@ -1,0 +1,250 @@
+<section id="OrderDetails">
+    <h1>Order Details</h1><br>
+    <div class="orderid"><strong>Order #{{thisOrder._id}}</strong></div>
+    <div class="container">
+
+        <!--ORDER SUMMARY-->
+        <div class="summary">
+            <div class="section-title">Order Summary</div>
+            
+            <ul>
+                {{#each thisOrder.items}}
+                {{#if this.quantity}}
+                <li>
+                    <div class="col col-1"><strong>{{this.snackId.name}}</strong></div>
+                    <div class="col col-2" id="qty">Qty: {{this.quantity}}</div>
+                    <div class="col col-3">${{two_dp (multiply this.snackId.price this.quantity)}}</div>
+                </li>
+                {{/if}}
+                {{/each}}
+                <li class="total">
+                    <div class="col col-1"><strong>TOTAL</strong></div>
+                    <div class="col col-2"></div>
+                    <div class="col col-3">${{two_dp total}}</div>
+                </li>
+            
+                <li class="total" id="discount">
+                    <div class="col col-1"><strong>After Discount</strong></div>
+                    <div class="col col-2"></div>
+                    <div class="col col-3">${{two_dp (multiply 0.8 total)}}</div>
+                </li>
+                
+            </ul>
+        </div>
+
+        <!--ORDER STATUS-->
+        <div class="status">
+            <div class="section-title">Order Status</div>
+            <div>
+                <ul>
+                    <li>
+                        <div class="col col-1"><strong>Van Name: </strong></div>
+                        <div>{{thisOrder.van.name}}</div>
+                    </li>
+
+                    {{#unless thisOrder.fulfilled}}
+                    <li>
+                        <div class="col col-1"><strong>Time Remaining: </strong></div>
+                        <div id="countdown"></div> {{!- we could use subtract but we could also use the javascript from above}}
+                    </li>
+                    
+                    <p class="notice">We will give you 20% discount if your order is not ready within the time limit!</p>
+                    {{/unless}}
+                    <li>
+                        <div class="col col-1"><strong>Status: </strong></div>
+                        <div>{{#if thisOrder.fulfilled}}Fulfilled{{else}}Outstanding{{/if}}</div>
+                    </li>
+                    <p hidden id="fulfilled">{{thisOrder.fulfilled}}</p>
+                    <p hidden id="pickup">{{thisOrder.picked_up}}</p>
+                    <p hidden id="items">{{thisOrder.items}}</p>
+                    <p hidden id="_id">{{thisOrder._id}}</p>
+                    <div class="step">
+                        <div class="bullet" id="bullet1">&#10003;</div>
+                        <div class="step-text"><strong>Order Received</strong></div>
+                    </div>
+                    <div class="step-text">We are processing your order.</div>
+                    <div id="step-subtitle">
+                        <div class="step-text"><br><br>
+                            You can change or cancel your order within
+                            10 minutes and before your order is fulfilled. 
+                        </div>
+
+                        <div class="button-container">
+                            <button class="step-text-button" onclick="showchangeModal()">CHANGE</button>&nbsp;
+                            <button class="step-text-button" onclick="showModal()">CANCEL</button>
+                        </div>
+                    </div>
+
+                    {{#if thisOrder.fulfilled}}
+                    <div class="step">
+                        <div class="bullet"  id="bullet2">&#10003;</div>
+                        <div class="step-text"><strong>Ready for Pickup</strong></div>
+                    </div>
+                    <div class="step-text">Your order is ready for pickup.</div>
+                    <div class="button-container">
+                        <button class="step-text-button">PAY</button>&nbsp;
+                        <button class="step-text-button">RATE US</button>
+                    </div>
+                    {{/if}}
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- pop up message when clicking CANCEL -->
+<div class="addcart-modal">
+    <div class="modal-content">
+        <div><img src="https://i.imgur.com/tZ47M5M.png" width="150px" height="140px"></div>
+        <div>
+            <p id="addToCartMessage">Are you sure you want to cancel your order?</p>
+            <form method="post" action="/customer/order-detail/cancel" id="cancel_order">
+                <button type="button" class="btn btn-primary btn-lg" onclick="markOrderAsCancelled()">YES</button>
+            </form>
+            <button onclick=closeModal()>NO</button></p>
+        </div>
+    </div>
+</div>
+
+<!-- pop up message when clicking CHANGE -->
+<div class="change-modal">
+    <div class="modal-content">
+        <div><img src="https://i.imgur.com/tZ47M5M.png" width="150px" height="140px"></div>
+        <div>
+            <p id="addToCartMessage">Are you sure you want to change your order?</p>
+            <p>
+            <button onclick="copytoLocal(), location.href = '/customer/snacks'">YES</button>
+            <button onclick=closechangeModal()>NO</button></p>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    //countdown timer for time remaining
+    var timeoutHandle;
+    function countdown(minutes, seconds) {
+        function tick() {
+            var counter = document.getElementById("countdown");
+            if(typeof counter !== 'undefined' && counter !== null) {
+                counter.innerHTML = minutes.toString() + ":" + 
+                (seconds < 10 ? "0" : "") + String(seconds);
+            }
+            
+            seconds--;
+            if (seconds >= 0) {
+                timeoutHandle = setTimeout(tick, 1000);
+                localStorage.setItem("seconds", seconds);
+                localStorage.setItem("minutes", minutes);
+            } else {
+                if (minutes >= 1) {
+                    setTimeout(function () {
+                        if(localStorage.getItem("minutes")){
+                            countdown(minutes - 1, 59);
+                        }
+                        else{
+                            return
+                        }
+                    }, 1000);
+                    localStorage.setItem("seconds", 59);
+                    localStorage.setItem("minutes", minutes-1);
+                }
+            }
+        }
+        if(localStorage.getItem("minutes")){
+            tick();
+        }
+        else{
+            return;
+        }
+        
+    }
+    
+    if(localStorage.getItem("minutes")) {
+        countdown(localStorage.getItem("minutes"), localStorage.getItem("seconds"));
+    }
+
+    
+    setInterval(function () {
+        const current_time = localStorage.getItem("minutes");
+        const fulfilledStatus = document.getElementById('fulfilled').innerHTML;
+        const current_second = localStorage.getItem("seconds");
+        // show cancel and change button if time >= 10 minutes
+        if(Number(current_time) >= 10 && fulfilledStatus === "false") {
+            const subtitle = document.getElementById('step-subtitle');
+            subtitle.style.display="block";
+        }
+        else {
+            const subtitle = document.getElementById('step-subtitle');
+            subtitle.style.display="none";
+        }
+
+        //show discount div if timer reach 0:00
+        if(Number(current_time) === 0 && Number(current_second) === 0
+        && fulfilledStatus === "false") {
+            const discount = document.getElementById('discount');
+            discount.style.display="flex";
+        }
+        else {
+            const discount = document.getElementById('discount');
+            discount.style.display="none";
+        }
+    }, 1000);
+
+    //change bullet color in order status
+    
+    const firstbulletEl = document.getElementById('bullet1');
+    const secondbulletEl = document.getElementById('bullet2');
+    const fulfilledStatus = document.getElementById('fulfilled');
+
+    firstbulletEl.style.color="white";
+    firstbulletEl.style.backgroundColor="#24305E";
+
+    //when order is fulfilled and ready to be picked up
+    if (fulfilledStatus) {
+        secondbulletEl.style.color="white";
+        secondbulletEl.style.backgroundColor="#24305E";
+    }
+
+    function showModal() {
+         document.querySelector('.addcart-modal').style.display = "flex";
+    }
+
+    function closeModal(){
+        document.querySelector('.addcart-modal').style.display = "none";
+    }
+
+    function showchangeModal() {
+         document.querySelector('.change-modal').style.display = "flex";
+    }
+
+    function closechangeModal(){
+        document.querySelector('.change-modal').style.display = "none";
+    }
+
+    function copytoLocal() {
+        localStorage.removeItem('minutes');
+        localStorage.removeItem('seconds');
+        const items = {{{ json thisOrder.items }}};
+        console.log(items)
+        console.log(items.length)
+        var i;
+        let items_arr = new Array(items.length);
+        let qty_arr = new Array(items.length);
+        for(i = 0; i < items.length; i++){
+            items_arr[i] = items[i].snackId._id;
+            qty_arr[i] = String(items[i].quantity);
+        }
+        console.log(qty_arr)
+        console.log(items_arr)
+        localStorage.setItem('quantity', JSON.stringify(qty_arr));
+        localStorage.setItem('current_cart', JSON.stringify(items_arr));
+    }
+
+    //Submit Script
+    function markOrderAsCancelled() {
+        document.getElementById("cancel_order").submit()
+    }
+    console.log(document.getElementbyId("_id").innerHTML)
+       
+</script>

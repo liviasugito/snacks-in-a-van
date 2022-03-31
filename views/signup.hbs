@@ -1,0 +1,39 @@
+{{! Code based on that from foodbuddy app, provided by INFO30005 Faculty 2021}}
+
+<section id="signUp">
+    <h1>Sign Up</h1>
+    <form method="post" action="/customer/signup">
+    <div class="container">
+      
+      
+      <label for="gname">Given Name</label>
+      <input placeholder="Given Name" name='nameGiven' id='nameGiven' value=""/>
+      <label for="fname">Family Name</label>
+      <input placeholder="Family Name"  name='nameFamily' id='nameFamily' value=""/>
+      <label for="email">Email</label>
+      <input placeholder="Email" name='email' id='email' pattern="[\.0-9A-Za-z]+@[\.A-Za-z]+" value=""/>
+      <label for="password">Password</label>
+      <input placeholder="Password" type="password" name='password' pattern="(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])[a-zA-Z0-9]{8,}"
+      id='password' value=""/>
+      <p>(At least 8 characters with 1 uppercase letter & 1 number)</p>
+
+      <input type="submit" value="Sign Up">
+    </div>
+    </form>
+</section>
+
+<!--alert box -->
+{{#if message}}
+<div class="bg-modal">
+    <div class="modal-content">
+        <div class="close">&times;</div>
+        <div><img src="https://i.imgur.com/tZ47M5M.png" width="150px" height="140px"></div>
+        <div>{{message}}</div>
+    </div>
+</div>
+{{/if}}
+<script>
+    document.querySelector('.close').addEventListener('click', function() {
+        document.querySelector('.bg-modal').style.display='none';
+    });
+</script>

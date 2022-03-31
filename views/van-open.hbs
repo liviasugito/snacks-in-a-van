@@ -1,0 +1,47 @@
+<section id="vanopen">
+
+  <div class="p-2 mb-4 bg-light rounded-3">
+    <div class="container text-center">
+      <h1 class="display-5 fw-bold">Location Updated!</h1></div></div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-5">
+        <div id="mapping"></div>
+      </div>
+      <div class="col-lg-7">
+        <div class="col-xl-3 col-lg-5 col-md-8 text-left">
+<p>Van Name: {{oneVan.name}}</p>
+<p>Location: {{oneVan.location.latitude}}, {{oneVan.location.longitude}}</p>
+<p>Location Description: {{oneVan.location_description}}</p>
+<p>Open?
+    {{#if oneVan.ready_for_order}} Yes, we are open!
+    {{else}} Sorry, we are closed! {{/if}}</p><br>
+<p><a href="/vendor/location"> Back to Update Location</a></p>
+<p><a href="/vendor/outstanding-orders"> Outstanding Orders</a></p>
+<p><a href="/vendor/pickedup-orders"> Picked-up Orders</a></p>
+</div></div></section>
+
+<script>
+      if ('geolocation' in navigator) {
+        console.log('geolocation available');
+        navigator.geolocation.getCurrentPosition(position => {
+          lat = position.coords.latitude;
+          lon = position.coords.longitude;
+          const mymap = L.map('mapping').setView([lat, lon], 15);
+          const attribution =
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+          const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+          const tiles = L.tileLayer(tileUrl, { attribution });
+          tiles.addTo(mymap);
+          const marker = L.marker([lat, lon]).addTo(mymap);
+        });
+      } else {
+        console.log('geolocation not available');
+      }
+</script>
+<style>
+  #mapping{
+    height: 500px;
+  }
+</style>

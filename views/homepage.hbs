@@ -1,0 +1,49 @@
+{{!Homepage for the customer website}}
+<section id="homePage">
+    <div class="col1">
+        <h1>Snacks in a Van</h1>
+        <hr>
+        <p>
+            Welcome! This is a project to create web apps for 'Snacks in A Van' a new startup company operating in
+            Melbourne. Please enable location to find nearest vans.
+        </p>
+        {{!-- submit a hidden form to get nearest van --}}
+        <form method="POST" action="/customer/nearest-van" id="get_nearest_form">
+            <input type="hidden" id="location" name="location">
+            {{#if loggedin}}
+            <input type="button" onclick="getNearestVan()" value="Find Nearest Van"><br>
+            <span id="please_wait" style="font-size:15px; font-style: italic;"></span>
+            {{else}}<input type="button" onclick="login()" id = "must_login" value="Find Nearest Van"><br>
+            {{/if}}
+        </form>
+    </div>
+
+    <div class="col2"> {{!-- for coffee image --}}
+        <img src="https://pngimg.com/uploads/mug_coffee/mug_coffee_PNG16824.png"> 
+    </div>
+
+    <script> 
+        function getNearestVan(){
+            console.log("Get Nearest Van")
+            // call back function: asynchronous
+            navigator.geolocation.getCurrentPosition(function (position){
+                lat = position.coords.latitude;
+                lon = position.coords.longitude;
+                console.log(lat, lon);
+                json_location = JSON.stringify({ 'latitude': lat, 'longitude': lon })
+                console.log(json_location)
+                // set Element Location 
+                document.getElementById('location').value = json_location;
+                // submit After Successfully Getting Position from geoLocation API
+                document.getElementById("get_nearest_form").submit()
+            })
+            document.getElementById('please_wait').innerHTML = 'Fetching current location... Please wait' // outside callback function
+        }
+        
+        function login(){
+            location.replace('/customer/getLoginPage')
+        }
+    </script>
+</section>
+
+

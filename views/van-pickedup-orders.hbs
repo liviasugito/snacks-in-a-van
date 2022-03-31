@@ -1,0 +1,18 @@
+<div class="p-2 bg-light rounded-3">
+    <div class="container text-center">
+      <h1 class="display-5 fw-bold">Picked-Up Orders</h1></div>
+  </div>
+  <div class="list-group" style="overflow: hidden;">
+{{#each vanOrders}}
+  <a href="/vendor/orders/{{this._id}}" class="list-group-item list-group-item-action flex-column align-items-start "> <!-- active !-->
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">Order #{{this._id}}</h5>
+      <small class="text-muted">{{#unless this.fulfilled}}Not fulfilled{{else}}Fulfilled{{/unless}}</small>
+    </div>
+    <p class="mb-1">Customer Name: {{this.customer.nameGiven}} {{this.customer.nameFamily}}</p>
+    <small>Discount: {{#if this.discount}}Applied{{else}}Not applied{{/if}}</small> 
+  </a>
+  {{else}}<div class="alert alert-warning" role="alert">
+  <center>No Picked-Up Orders.</center>
+</div>
+  {{/each}}

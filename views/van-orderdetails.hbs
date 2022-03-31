@@ -1,0 +1,109 @@
+<section id="van-orderdetails">
+    <h1>Order #{{order._id}}</h1>
+    <h2>Customer: {{order.customer.nameGiven}} {{order.customer.nameFamily}}</h2>
+    {{#if order.cancelled}}
+    <p id="cancel">This order has been cancelled.</p>
+    <p id="cancel"><a href="/vendor/outstanding-orders">Go back to the oustanding orders page.</a></p>
+    {{else}}
+    <div>
+        <table>
+            <tr> 
+                <th>Product</th>
+                <th></th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                
+            </tr>
+            
+            {{#each order.items}}
+            {{#if this.quantity}}
+            <tr>
+                <td>
+                    <div class="order-info">
+                        <img class="van-orderdetails" src="https://source.unsplash.com/{{this.snackId.photo}}" alt="hosted by Unsplash">
+                        
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <p>{{this.snackId.name}}</p>
+                        <small>Price: ${{this.snackId.price}}</small>
+                    </div>
+                </td>
+                <td>{{this.quantity}}</td>
+                <td>{{two_dp (multiply this.snackId.price this.quantity)}}</td>
+                  
+            </tr>
+            {{/if}}
+            {{/each}}
+        </table>
+    </div>
+    <div class="submit">
+        <table>
+            <tr>
+                <td>Discount:</td>
+                {{#unless order.picked_up}}
+                    {{#unless order.discount}}
+                        {{#unless (discount (subtract order.time_ordered order.current_date))}}
+                            <td>Time until discount: {{subtract order.time_ordered order.current_date}}</td>
+                        {{else}}
+                            <form method="post" input="hidden" action="/vendor/orders/{{order._id}}/discounted" id="discount"/>
+                            <script>document.getElementById("discount").submit()</script>
+                        {{/unless}}
+
+                    {{/unless}}
+
+                {{/unless}}
+                {{#unless order.discount}}
+                    {{#if order.picked_up}}
+                        <td>-0%</td>
+                    {{/if}}
+                {{else}}        
+                    <td>-20%</td>
+                {{/unless}}
+            </tr>
+            <tr>
+                <td><b>Total Price</b></td>
+                {{#if order.discount}}
+                <td>${{two_dp (multiply total 0.8)}}</td>
+                {{else}}
+                <td>${{two_dp total}}</td>
+                {{/if}}
+            </tr>
+            
+            <tr><td></td>
+                <td>
+                {{#unless order.fulfilled}}
+                <form method="post" action="/vendor/orders/{{order._id}}/fulfilled" id="fulfill_order">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="markOrderAsFulfilled()">Fulfill Order</button>
+                </form>
+                {{else}}
+                <p>Fulfilled Order!</p>
+                {{/unless}}
+
+                {{#if order.fulfilled}}
+                    {{#unless order.picked_up}}
+                    <form method="post" action="/vendor/orders/{{order._id}}/pickedup" id="pickup_order">
+                        <button type="button" class="btn btn-primary btn-lg" onclick="markOrderAsPickedUp()">Picked Up</button>
+                    </form>
+                    {{else}}
+                    <p>Picked Up!</p>
+                    {{/unless}}
+                {{/if}}
+                
+                </td>
+            </tr>
+        </table>
+
+    </div>
+    {{/if}}
+    <script>
+        // Form Submit Script
+        function markOrderAsFulfilled() {
+        document.getElementById("fulfill_order").submit()
+        }
+        function markOrderAsPickedUp() {
+        document.getElementById("pickup_order").submit()
+        }
+    </script>
+</section>
