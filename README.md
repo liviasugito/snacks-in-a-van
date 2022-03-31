@@ -1,8 +1,4 @@
-**The University of Melbourne**
-# INFO30005 – Web Information Technologies
-
-# Tutorial 8 Group 2 Project Repository
-## Snacks in A Van
+# Snacks in A Van
 Welcome!
 
 This is a project to create web apps for 'Snacks in A Van' a new startup company operating in Melbourne.
